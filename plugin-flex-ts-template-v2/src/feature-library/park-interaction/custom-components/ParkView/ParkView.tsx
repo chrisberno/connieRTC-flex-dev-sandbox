@@ -5,7 +5,7 @@ import { Heading } from '@twilio-paste/core/heading';
 
 import { StringTemplates } from '../../flex-hooks/strings';
 import ParkViewTable from './ParkViewTable';
-import { ParkedInteraction } from '../../utils/ParkInteractionService';
+import type { ParkedInteraction } from '../../utils/ParkInteractionService';
 import SyncClient, { getAllSyncMapItems } from '../../../../utils/sdk-clients/sync/SyncClient';
 import { UnparkInteractionNotification } from '../../flex-hooks/notifications';
 import logger from '../../../../utils/logger';
@@ -25,14 +25,14 @@ const ParkView = () => {
   const [deletedMapItem, setDeletedMapItem] = useState('');
   const workerSid = Manager?.getInstance()?.workerClient?.sid || '';
 
-  const getParkedInteractions = async () => {
+  const getParkedInteractions = useCallback(async () => {
     setIsLoaded(false);
-    let getSyncMapItems;
+    let getSyncMapItems: unknown[] = [];
     try {
       const map = await SyncClient.map(`ParkedInteractions_${workerSid}`);
       getSyncMapItems = await getAllSyncMapItems(map);
-    } catch (error: any) {
-      logger.error('[park-interaction] Map getItems() failed', error);
+    } catch (error: unknown) {
+      logger.error('[park-interaction] Map getItems() failed', error as object);
       Notifications.showNotification(UnparkInteractionNotification.UnparkListError, { message: error });
     }
 
@@ -46,28 +46,42 @@ const ParkView = () => {
       .filter((mapItem) => {
         // Sometimes the item that was just deleted is still returned
         // So I included this fallback check
-        return mapItem.key !== deletedMapItem;
+        return (
+          typeof mapItem === 'object' &&
+          mapItem !== null &&
+          'key' in mapItem &&
+          (mapItem as { key: string }).key !== deletedMapItem
+        );
       })
       .map((mapItem) => {
-        const data = mapItem.data as ParkedInteraction;
+        interface MapItemWithDescriptor {
+          key: string;
+          data: unknown;
+          dateUpdated?: Date;
+          descriptor?: {
+            date_created?: string;
+          };
+        }
+        const typedMapItem = mapItem as MapItemWithDescriptor;
+        const data = typedMapItem.data as ParkedInteraction;
         if (typeof data.taskAttributes === 'string') {
           data.taskAttributes = JSON.parse(data.taskAttributes);
         }
-        let parkingDate;
+        let parkingDate: Date | undefined;
         // We need to cast because descriptor is private
-        if ((mapItem as any).descriptor?.date_created) {
-          parkingDate = new Date((mapItem as any).descriptor.date_created);
+        if (typedMapItem.descriptor?.date_created) {
+          parkingDate = new Date(typedMapItem.descriptor.date_created);
         } else {
           // Bug: right after sync map item created, the date_created attribute is not available in the object
           // So we need to use the date_updated, which is the same initially
-          parkingDate = mapItem.dateUpdated;
+          parkingDate = typedMapItem.dateUpdated;
         }
 
         // Use TaskRouter channel name as the main descriptor (e.g. "Chat"), and if channelType is set too - append that for
         // better identify types of interaction (e.g. "Chat (Messenger)")
         let channelDisplayText = `${data.taskChannelUniqueName[0].toUpperCase()}${data.taskChannelUniqueName.slice(1)}`;
-        if (data.channelType && data.channelType !== data.taskChannelUniqueName) {
-          channelDisplayText += ` (${data.channelType[0].toUpperCase()}${data.channelType.slice(1)})`;
+        if (data.conversationType && data.conversationType !== data.taskChannelUniqueName) {
+          channelDisplayText += ` (${data.conversationType[0].toUpperCase()}${data.conversationType.slice(1)})`;
         }
 
         return {
@@ -86,11 +100,11 @@ const ParkView = () => {
     setRecentInteractionsList(sortedSyncMapItemsByMostRecent);
     setDeletedMapItem('');
     setIsLoaded(true);
-  };
+  }, [workerSid, deletedMapItem]);
 
   useEffect(() => {
     getParkedInteractions();
-  }, []);
+  }, [getParkedInteractions]);
 
   return (
     <Box width="100%">

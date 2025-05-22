@@ -1,10 +1,12 @@
 import * as Flex from '@twilio/flex-ui';
-import { Unsubscribe } from '@reduxjs/toolkit';
+// Import Unsubscribe type from redux
+import type { Unsubscribe } from 'redux';
 
-import AppState from '../../../types/manager/AppState';
+import type AppState from '../../../types/manager/AppState';
 import { reduxNamespace } from '../../../utils/state';
-import { ExtendedWrapupState } from '../flex-hooks/states/extendedWrapupSlice';
-import { TaskQualificationConfig } from '../types/ServiceConfiguration';
+// Import from the correct location - either flex-hooks or flex-hooks.bak
+import type { ExtendedWrapupState } from '../flex-hooks/states/extendedWrapupSlice';
+import type { TaskQualificationConfig } from '../types/ServiceConfiguration';
 import TaskRouterService from '../../../utils/serverless/TaskRouter/TaskRouterService';
 import logger from '../../../utils/logger';
 
@@ -90,8 +92,7 @@ export const setAutoCompleteTimeout = async (
             window.clearTimeout(wrapTimer);
           }
           if (
-            taskConfig &&
-            taskConfig.auto_wrapup &&
+            taskConfig?.auto_wrapup &&
             taskConfig.allow_extended_wrapup &&
             (!isExtended || taskConfig.extended_wrapup_time > 0)
           ) {
@@ -102,7 +103,8 @@ export const setAutoCompleteTimeout = async (
       : undefined;
 
     wrapTimer = startTimer(task, taskConfig, isExtended, unsubscribe);
-  } catch (error: any) {
-    logger.error(`Error attempting to set wrap up timeout for reservation: ${sid}`, error);
+  } catch (error: unknown) {
+    // Fix: Cast the unknown error to a more specific type or use a type assertion
+    logger.error(`Error attempting to set wrap up timeout for reservation: ${sid}`, error as Record<string, unknown>);
   }
 };

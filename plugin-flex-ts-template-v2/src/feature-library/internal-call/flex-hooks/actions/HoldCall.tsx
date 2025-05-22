@@ -1,4 +1,4 @@
-import * as Flex from '@twilio/flex-ui';
+import type * as Flex from '@twilio/flex-ui';
 
 import ProgrammableVoiceService from '../../../../utils/serverless/ProgrammableVoice/ProgrammableVoiceService';
 import { isInternalCall } from '../../helpers/internalCall';
@@ -21,5 +21,3 @@ export const actionHook = function handleInternalHoldCall(flex: typeof Flex, _ma
 
     await ProgrammableVoiceService.holdParticipant(conference, participant);
     abortFunction();
-  });
-};

@@ -1,8 +1,9 @@
-import { TaskHelper, Notifications, templates, Manager } from '@twilio/flex-ui';
+import { TaskHelper, Notifications, templates, Manager, ConversationHelper, StateHelper } from '@twilio/flex-ui';
 
 import { ParkInteractionNotification, UnparkInteractionNotification } from '../flex-hooks/notifications';
 import { StringTemplates } from '../flex-hooks/strings';
-import ParkInteractionPayload, { UnparkInteractionPayload } from '../types/ParkInteractionPayload';
+import type ParkInteractionPayload from '../types/ParkInteractionPayload';
+import type { UnparkInteractionPayload } from '../types/ParkInteractionPayload';
 import ParkInteractionService from '../utils/ParkInteractionService';
 import logger from '../../../utils/logger';
 
@@ -29,13 +30,21 @@ export const parkInteraction = async (payload: ParkInteractionPayload) => {
 
   try {
     const agent = await getAgent(payload);
+    
+    // Get conversationType using ConversationHelper
+    const conversationState = StateHelper.getConversationStateForTask(payload.task);
+    if (!conversationState) {
+      throw new Error('Conversation state is undefined');
+    }
+    const conversationHelper = new ConversationHelper(conversationState);
+    const conversationType = conversationHelper.conversationType;
 
     await ParkInteractionService.parkInteraction(
       agent.channelSid,
       agent.interactionSid,
       agent.participantSid,
       agent.mediaProperties.conversationSid,
-      agent.channelType,
+      conversationType, // Use conversationType instead of agent.channelType
       payload.task.taskSid,
       payload.task.workflowSid,
       payload.task.taskChannelUniqueName,

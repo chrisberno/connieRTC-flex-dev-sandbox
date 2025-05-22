@@ -1,16 +1,18 @@
 import * as Flex from '@twilio/flex-ui';
-import { ITask } from '@twilio/flex-ui';
+import type { ITask } from '@twilio/flex-ui';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Button } from '@twilio-paste/core/button';
 import { CheckboxCheckIcon } from '@twilio-paste/icons/esm/CheckboxCheckIcon';
 import { PlusIcon } from '@twilio-paste/icons/esm/PlusIcon';
 
-import { TaskQualificationConfig } from '../../types/ServiceConfiguration';
+import type { TaskQualificationConfig } from '../../types/ServiceConfiguration';
 import { getMatchingTaskConfiguration } from '../../config';
-import AppState from '../../../../types/manager/AppState';
+import type AppState from '../../../../types/manager/AppState';
 import { reduxNamespace } from '../../../../utils/state';
-import { ExtendedWrapupState } from '../../flex-hooks/states/extendedWrapupSlice';
+// Import from the correct location - either flex-hooks or flex-hooks.bak
+import type { ExtendedWrapupState } from '../../flex-hooks/states/extendedWrapupSlice';
+// Update the import path to the correct location of strings
 import { StringTemplates } from '../../flex-hooks/strings';
 import { validateUiVersion } from '../../../../utils/configuration';
 
@@ -30,18 +32,17 @@ const AutoComplete = ({ task }: OwnProps) => {
 
   useEffect(() => {
     setTaskConfig(getMatchingTaskConfiguration(task));
-  }, []);
+  }, [task]);
 
   useEffect(() => {
     if (
-      extendedReservationSids &&
-      extendedReservationSids.find((extendedReservationSid) => task && extendedReservationSid === task.sid)
+      extendedReservationSids?.find((extendedReservationSid: string) => task && extendedReservationSid === task.sid)
     ) {
       setIsExtended(true);
     } else {
       setIsExtended(false);
     }
-  }, [extendedReservationSids]);
+  }, [extendedReservationSids, task]);
 
   const extendWrapup = () => {
     Flex.Actions.invokeAction('ExtendWrapUp', { task, extend: !isExtended });

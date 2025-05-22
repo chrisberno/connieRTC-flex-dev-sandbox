@@ -1,5 +1,5 @@
 import ApiService from '../../../utils/serverless/ApiService';
-import { EncodedParams } from '../../../types/serverless';
+import type { EncodedParams } from '../../../types/serverless';
 import { isListEnabled } from '../config';
 import logger from '../../../utils/logger';
 
@@ -12,7 +12,7 @@ export interface ParkedInteraction {
   interactionSid: string;
   participantSid: string;
   conversationSid: string;
-  channelType: string;
+  conversationType: string;
   taskSid: string;
   workflowSid: string;
   taskChannelUniqueName: string;

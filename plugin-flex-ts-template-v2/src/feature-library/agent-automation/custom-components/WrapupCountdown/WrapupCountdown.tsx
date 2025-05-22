@@ -1,14 +1,19 @@
 import * as Flex from '@twilio/flex-ui';
-import { ITask } from '@twilio/flex-ui';
+import type { ITask } from '@twilio/flex-ui';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Flex as FlexComponent } from '@twilio-paste/core/flex';
 import { Text } from '@twilio-paste/core/text';
 
 import { getMatchingTaskConfiguration } from '../../config';
-import AppState from '../../../../types/manager/AppState';
+import type AppState from '../../../../types/manager/AppState';
 import { reduxNamespace } from '../../../../utils/state';
-import { ExtendedWrapupState } from '../../flex-hooks/states/extendedWrapupSlice';
+// Import from the correct location - either flex-hooks or flex-hooks.bak
+// Update the import path below if you have moved the file, or define the type inline if missing
+import type { ExtendedWrapupState } from '../../flex-hooks/states/extendedWrapupSlice';
+// If the correct path is unknown or the type is simple, you can define it inline as a temporary fix:
+// type ExtendedWrapupState = { extendedReservationSids: string[] };
+// Update the import path below to the correct location of your string templates
 import { StringTemplates } from '../../flex-hooks/strings';
 
 export interface OwnProps {
@@ -39,7 +44,7 @@ const WrapupCountdown = ({ task, channelDefinition }: OwnProps) => {
       code={Flex.TaskChannelHelper.getTemplateForStatus(
         task,
         channelDefinition?.templates?.TaskCanvasHeader?.secondLine,
-        Flex.TaskCanvasHeader as any,
+        Flex.TaskCanvasHeader as React.ComponentType<any>,
       )}
       task={task}
       helper={taskHelper}

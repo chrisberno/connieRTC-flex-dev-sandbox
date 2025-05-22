@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Actions } from '@twilio/flex-ui';
-import type { ITask } from '@twilio/flex-ui';
+import { Actions, ITask } from '@twilio/flex-ui';
 import { Flex } from '@twilio-paste/core/flex';
 import { Tabs, TabList, Tab, TabPanels, TabPanel, useTabState } from '@twilio-paste/core/tabs';
 
@@ -72,48 +71,22 @@ export const TabbedCRMTask = ({ thisTask, task }: Props) => {
     };
   }, []);
 
-  // Define a Senior Info tab to display senior data
-  const SeniorInfoTab = () => {
-    if (!thisTask) {
-      return <div>No active task</div>;
-    }
-
-    const seniorData = thisTask.attributes.seniorData || {};
-    const { name = 'Unknown', age = 'N/A', address = 'N/A' } = seniorData;
-
-    return (
-      <Flex grow element="CRM_FLEX">
-        <div>
-          <h3>Senior Information</h3>
-          <p><strong>Name:</strong> {name}</p>
-          <p><strong>Age:</strong> {age}</p>
-          <p><strong>Address:</strong> {address}</p>
-          <p><strong>Message:</strong> {thisTask.attributes.body}</p>
-        </div>
-      </Flex>
-    );
-  };
-
-  // Combine the Senior Info tab with custom components
-  const allComponents: CRMComponent[] = [
-    { title: 'Senior Info', component: SeniorInfoTab, order: 0 }, // Add Senior Info as the first tab
-    ...(customComponents || []), // Include any custom components
-  ];
-
   return (
     <div style={{ display, flex: '1 0 auto' }}>
       <Tabs state={tabState} element="CRM_TABS">
         <TabList aria-label="CRM tabs" element="CRM_TAB_LIST">
-          {allComponents.map((component) => (
-            <Tab key={`crm-tab-${component.title}`}>{component.title}</Tab>
-          ))}
+          {customComponents &&
+            customComponents.map((component) => <Tab key={`crm-tab-${component.title}`}>{component.title}</Tab>)}
         </TabList>
         <TabPanels element="CRM_TAB_PANELS">
-          {allComponents.map((component) => (
-            <TabPanel element="CRM_TAB_PANEL" key={`crm-tab-panel-${component.title}`}>
-              {React.createElement(component.component)}
-            </TabPanel>
-          ))}
+          {customComponents &&
+            customComponents.map((component) => (
+              <TabPanel element="CRM_TAB_PANEL" key={`crm-tab-panel-${component.title}`}>
+                <Flex grow element="CRM_FLEX">
+                  {component.component}
+                </Flex>
+              </TabPanel>
+            ))}
         </TabPanels>
       </Tabs>
     </div>
